@@ -38,6 +38,8 @@ predictions = model.predict(test_x)
 print("Predictions made, calculating metrics...")
 report = classification_report(test_y, predictions)
 print(report)
+cm = confusion_matrix(test_y, predictions)
+print(cm)
 
 
 
