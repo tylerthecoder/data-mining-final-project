@@ -1,6 +1,8 @@
 import pandas as pd
 from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.naive_bayes import GaussianNB as NaiveBayes
 
 age_data_path = './data/csv/age_gender_bkts.csv'
 age_gender_df = pd.read_csv(age_data_path)
@@ -32,6 +34,9 @@ def proccess_data(df: pd.DataFrame):
 
     # This isn't in the test set, so we drop it. 
     X.drop(columns=["date_first_booking"], axis=1, inplace=True)
+
+    X["age"].fillna(0, inplace=True)
+    X["age"] = X["age"].astype('int8')
 
     X["language"] = X["language"].astype('category').cat.codes
     X["gender"] = X["gender"].astype('category').cat.codes
@@ -69,6 +74,8 @@ test_x = x[split_x:]
 test_y = y[split_y:]
 
 model = RandomForestClassifier(n_jobs=-1)
+# model = LogisticRegression(n_jobs=-1)
+# model = NaiveBayes()
 print("Model created, fitting...")
 model.fit(train_x, train_y)
 print("Model fitted, predicting...")
