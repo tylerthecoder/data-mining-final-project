@@ -12,3 +12,6 @@ for file in data/zips/*.zip
         unzip $file -d data/csv
     done
 
+rm -rf data/raw
+rm -rf data/zips
+
