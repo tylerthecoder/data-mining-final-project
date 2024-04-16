@@ -3,6 +3,15 @@ from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.naive_bayes import GaussianNB as NaiveBayes
+from sklearn.model_selection import train_test_split
+from xgboost import XGBClassifier
+from sklearn.neural_network import MLPClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+from imblearn.over_sampling import SMOTE
+
+
 
 age_data_path = './data/csv/age_gender_bkts.csv'
 age_gender_df = pd.read_csv(age_data_path)
@@ -66,24 +75,35 @@ print("Distribution of classes in y:")
 print(distribution)
 
 # Split the data into training and testing
-split_x = int(0.8*len(x))
-split_y = int(0.8*len(y))
-train_x = x[:split_x]
-train_y = y[:split_y]
-test_x = x[split_x:]
-test_y = y[split_y:]
+X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
 
-model = RandomForestClassifier(n_jobs=-1)
+print("Smotting") 
+smote = SMOTE()
+X_train, y_train = smote.fit_resample(X_train, y_train)
+
+# print("Scaling...")
+# scaler = StandardScaler()
+# X_train = scaler.fit_transform(X_train)
+# X_test = scaler.fit_transform(X_test)
+
+# model = RandomForestClassifier(n_jobs=-1)
 # model = LogisticRegression(n_jobs=-1)
 # model = NaiveBayes()
+# model = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1, max_iter=100000)
+model = XGBClassifier(tree_method="hist", early_stopping_rounds=2, n_estimators=500, n_jobs=-1)
+
 print("Model created, fitting...")
-model.fit(train_x, train_y)
+
+# model.fit(train_x, train_y)
+
+model.fit(X_train, y_train, eval_set=[(X_test, y_test)], verbose=True)
+
 print("Model fitted, predicting...")
-predictions = model.predict(test_x)
+predictions = model.predict(X_test)
 print("Predictions made, calculating metrics...")
-report = classification_report(test_y, predictions)
+report = classification_report(y_test, predictions)
 print(report)
-cm = confusion_matrix(test_y, predictions)
+cm = confusion_matrix(y_test, predictions)
 print(cm)
 
 
