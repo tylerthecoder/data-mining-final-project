@@ -38,9 +38,6 @@ def process_data(df: pd.DataFrame):
     X["day_created"] = pdt.dt.day
     X.drop(columns=["date_account_created"], axis=1, inplace=True)
 
-    X["secs_elapsed"] = X["secs_elapsed"].fillna(-1)
-    # X = X.drop(columns=["secs_elapsed"], axis=1)
-
     # Dropping date_first_booking
     X.drop(columns=["date_first_booking"], axis=1, inplace=True)
 
@@ -97,7 +94,7 @@ print(X_test.head())
 # model = NaiveBayes()
 # model = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1, max_iter=100000)
 model = XGBClassifier(tree_method="hist", early_stopping_rounds=5, n_estimators=500, n_jobs=-1)
-
+print(X_train)
 print("Model created, fitting...")
 # model.fit(X_train, y_train)
 model.fit(X_train, y_train, eval_set=[(X_test, y_test)], verbose=True)
