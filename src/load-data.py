@@ -98,11 +98,11 @@ model = XGBClassifier(
     early_stopping_rounds=5,
     n_estimators=500,
     n_jobs=-1,
-    # learning_rate = .005,
-    # max_depth=10,
-    # min_child_weight=1,
-    # subsample=.5,
-    # colsample_bytree=.5,
+    learning_rate = .005,
+    max_depth=10,
+    min_child_weight=1,
+    subsample=.5,
+    colsample_bytree=.5,
 )
 print(X_train)
 print("Model created, fitting...")
