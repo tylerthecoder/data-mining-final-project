@@ -93,7 +93,17 @@ print(X_test.head())
 # model = LogisticRegression(n_jobs=-1)
 # model = NaiveBayes()
 # model = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1, max_iter=100000)
-model = XGBClassifier(tree_method="hist", early_stopping_rounds=5, n_estimators=500, n_jobs=-1)
+model = XGBClassifier(
+    tree_method="hist",
+    early_stopping_rounds=5,
+    n_estimators=500,
+    n_jobs=-1,
+    # learning_rate = .005,
+    # max_depth=10,
+    # min_child_weight=1,
+    # subsample=.5,
+    # colsample_bytree=.5,
+)
 print(X_train)
 print("Model created, fitting...")
 # model.fit(X_train, y_train)
