@@ -1,5 +1,4 @@
-import pandas as pd
-import numpy as np
+from load_data import x, y
 from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
@@ -11,74 +10,14 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 from imblearn.over_sampling import SMOTE
+import pandas as pd
 from ndcg import ndcg
-from session_summerizer import get_summerized_session_data
-
-print("Loading user data...")
-users_data_path = './data/csv/train_users_2.csv'
-users_df = pd.read_csv(users_data_path)
-
-# Summerize the session data
-print("Loading session data...")
-sum_session = get_summerized_session_data()
-
-print(users_df.head())
-print(sum_session.head())
-
-def process_data(df: pd.DataFrame):
-    # Combine the session data
-    X = df.merge(sum_session, left_on="id", right_on="user_id", how="left")
-
-    X = X.drop(columns=["id", "country_destination", "user_id"], axis=1)
-    
-    # Handling date_account_created
-    pdt = pd.to_datetime(X["date_account_created"])
-    X["year_created"] = pdt.dt.year
-    X["month_created"] = pdt.dt.month
-    X["day_created"] = pdt.dt.day
-    X.drop(columns=["date_account_created"], axis=1, inplace=True)
-
-    # Dropping date_first_booking
-    X.drop(columns=["date_first_booking"], axis=1, inplace=True)
-
-    # Handling missing values in age
-    median_age = X["age"].median()
-    X["age"].fillna(median_age, inplace=True)
-    X["age"] = X["age"].clip(lower=0, upper=120).astype('int8')  # Ensure age is within a reasonable range
-
-    # Encoding categorical variables
-    categorical_columns = ["language", "gender", "signup_method", "affiliate_channel", 
-                           "affiliate_provider", "first_affiliate_tracked", "signup_app", 
-                           "first_device_type", "first_browser"]
-    for col in categorical_columns:
-        X[col] = X[col].astype('category').cat.codes
-    
-    Y = df["country_destination"].astype('category').cat.codes
-    return X, Y
+import numpy as np
 
 
-# Do a basic prediction
-print("Processing data...")
-x, y = process_data(users_df)
-
-# Print the columns and their datatypes
-print("Columns and their datatypes:")
-print(x.dtypes.to_string())
-
-# Print the distribution of classes in y
-distribution = y.value_counts()
-print("Distribution of classes in y:")
-print(distribution)
 
 # Split the data into training and testing
 X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.1, random_state=42)
-
-print("Training data shape: ", X_train.shape)
-print(X_train.head())
-
-print("Testing data shape: ", X_test.shape)
-print(X_test.head())
-
 
 # print("Smoting...") 
 # smote = SMOTE()
