@@ -1,7 +1,7 @@
-from load_data import x, y
+from load_data import process_data, set_age_group, x, y
 from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
 from sklearn.naive_bayes import GaussianNB as NaiveBayes
 from sklearn.model_selection import train_test_split
 from xgboost import XGBClassifier
@@ -18,6 +18,13 @@ import numpy as np
 
 # Split the data into training and testing
 X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.05, random_state=42)
+# X_train, X_test, y_train, y_test = train_test_split(x, y, train_size=0.75, stratify=y)
+
+
+# X_train = x
+# X_test = x
+# y_train = y
+# y_test = y
 
 # print("Smoting...") 
 # smote = SMOTE()
@@ -32,12 +39,15 @@ X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.05, random
 # model = LogisticRegression(n_jobs=-1)
 # model = NaiveBayes()
 # model = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1, max_iter=100000)
+
+
 model = XGBClassifier(
     tree_method="hist",
     early_stopping_rounds=5,
-    n_estimators=500,
+    n_estimators=200,
     n_jobs=-1,
 )
+
 print(X_train)
 print("Model created, fitting...")
 # model.fit(X_train, y_train)
@@ -71,4 +81,20 @@ print(cm_df3)
 
 val = ndcg(prob_preds, y_test)
 print("SCORE: ", val)
+
+
+
+
+
+print("Predict on test data")
+
+# df_test = pd.read_csv('data/test_users.csv')
+# df_test = process_data(df_test)
+#
+# pred_prob = pd.DataFrame(pred_prob, index=df_test.index)
+
+
+
+
+
 
