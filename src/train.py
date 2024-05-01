@@ -3,7 +3,7 @@ from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
 from sklearn.naive_bayes import GaussianNB as NaiveBayes
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import GridSearchCV, train_test_split
 from xgboost import XGBClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.model_selection import train_test_split
@@ -11,7 +11,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 from imblearn.over_sampling import SMOTE
 import pandas as pd
-from ndcg import ndcg
+from ndcg import ndcg, ndcg_scorer
 import numpy as np
 
 
@@ -50,8 +50,60 @@ model = XGBClassifier(
 
 print(X_train)
 print("Model created, fitting...")
-# model.fit(X_train, y_train)
-model.fit(X_train, y_train, eval_set=[(X_test, y_test)], verbose=True)
+
+if False: # Set true to run the grid search
+    search_space = {
+        'n_estimators': [100,200],
+        'max_depth': [3,5],
+        "gamma" : [0.01, 0.1],
+        "learning_rate" : [0.001, 0.01, 0.1, 1]
+    }
+
+
+    model = GridSearchCV(
+    XGBClassifier(
+            tree_method="hist",
+        ),
+        search_space,
+        verbose=100,
+        scoring=ndcg_scorer,
+        n_jobs=-1,
+    )
+
+    model.fit(x, y)
+
+    print(model.best_estimator_) # to get the complete details of the best model
+    print(model.best_params_) # to get only the best hyperparameter values that we searched for
+
+
+    # Assuming you have already performed the grid search and obtained the results
+    df = pd.DataFrame(model.cv_results_)
+
+    # Sort the DataFrame by the mean test score for the default scoring metric, typically 'mean_test_score'
+    df = df.sort_values('rank_test_score')  # Sorting by rank which is directly related to the default score
+
+    # Save the sorted DataFrame to a CSV file
+    df.to_csv("cv_results.csv", index=False)
+
+    print("Results sorted by default scoring (accuracy) and saved to 'cv_results.csv'.")
+
+    # Assuming you have already performed the grid search and obtained the results
+    df = pd.DataFrame(model.cv_results_)
+
+    # Sort the DataFrame by the mean test score for the default scoring metric, typically 'mean_test_score'
+    df = df.sort_values('rank_test_score')  # Sorting by rank which is directly related to the default score
+
+    # Save the sorted DataFrame to a CSV file
+    df.to_csv("cv_results.csv", index=False)
+
+    print("Results sorted by default scoring (accuracy) and saved to 'cv_results.csv'.")
+
+
+
+    print(x)
+else:
+    # model.fit(X_train, y_train)
+    model.fit(X_train, y_train, eval_set=[(X_test, y_test)], verbose=True)
 
 print("Model fitted, predicting...")
 predictions = model.predict(X_test)
