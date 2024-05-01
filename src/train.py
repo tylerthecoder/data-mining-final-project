@@ -14,88 +14,59 @@ import pandas as pd
 from ndcg import ndcg, ndcg_scorer
 import numpy as np
 
-
-
-# Split the data into training and testing
 X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.05, random_state=42)
-# X_train, X_test, y_train, y_test = train_test_split(x, y, train_size=0.75, stratify=y)
 
+import sys
+cross_val = len(sys.argv) > 1 and sys.argv[1] == "cross"
 
-# X_train = x
-# X_test = x
-# y_train = y
-# y_test = y
+if not cross_val:
+    model = XGBClassifier(
+        tree_method="hist",
+        early_stopping_rounds=5,
+        n_estimators=200,
+        # n_jobs=-1,
+    )
 
-# print("Smoting...") 
-# smote = SMOTE()
-# X_train, y_train = smote.fit_resample(X_train, y_train)
+    model.fit(X_train, y_train, eval_set=[(X_test, y_test)], verbose=True)
+else:
+    model = XGBClassifier(
+        tree_method="hist",
+        colsample_bytree=0.8,
+        objective= 'multi:softprob',
+        eval_metric= 'ndcg',
+        random_state=42,
+    )
 
-# print("Scaling...")
-# scaler = StandardScaler()
-# X_train = scaler.fit_transform(X_train)
-# X_test = scaler.fit_transform(X_test)
+    search_space = {
+        'n_estimators': [200],
+        'max_depth': [3],
+        "gamma" : [0.1],
+        "learning_rate" : [1]
+    }
 
-# model = RandomForestClassifier(n_jobs=-1)
-# model = LogisticRegression(n_jobs=-1)
-# model = NaiveBayes()
-# model = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1, max_iter=100000)
+    print("Grid searching...", search_space)
+    model = GridSearchCV(
+        model,
+        search_space,
+        verbose=100,
+        scoring=ndcg_scorer,
+    )
 
+    model.fit(x, y)
 
-model = XGBClassifier(
-    tree_method="hist",
-    early_stopping_rounds=5,
-    n_estimators=200,
-    # n_jobs=-1,
-)
+    print(model.best_estimator_) # to get the complete details of the best model
+    print(model.best_params_) # to get only the best hyperparameter values that we searched for
 
-# model = XGBClassifier(
-#     tree_method="hist",
-#     colsample_bytree=0.8,
-#     objective= 'multi:softprob',
-#     eval_metric= 'ndcg',
-#     random_state=42,
-# )
+    # Assuming you have already performed the grid search and obtained the results
+    df = pd.DataFrame(model.cv_results_)
 
-print(X_train.head())
+    # Sort the DataFrame by the mean test score for the default scoring metric, typically 'mean_test_score'
+    df = df.sort_values('rank_test_score')  # Sorting by rank which is directly related to the default score
 
+    # Save the sorted DataFrame to a CSV file
+    df.to_csv("cv_results.csv", index=False)
 
-search_space = {
-    'n_estimators': [200],
-    'max_depth': [3],
-    "gamma" : [0.1],
-    "learning_rate" : [1]
-}
-
-print("Grid searching...", search_space)
-
-# model = GridSearchCV(
-#     model,
-#     search_space,
-#     verbose=100,
-#     scoring=ndcg_scorer,
-# )
-#
-# model.fit(x, y)
-
-model.fit(X_train, y_train, eval_set=[(X_test, y_test)], verbose=True)
-
-# print(model.best_estimator_) # to get the complete details of the best model
-# print(model.best_params_) # to get only the best hyperparameter values that we searched for
-#
-#
-# # Assuming you have already performed the grid search and obtained the results
-# df = pd.DataFrame(model.cv_results_)
-#
-# # Sort the DataFrame by the mean test score for the default scoring metric, typically 'mean_test_score'
-# df = df.sort_values('rank_test_score')  # Sorting by rank which is directly related to the default score
-#
-# # Save the sorted DataFrame to a CSV file
-# df.to_csv("cv_results.csv", index=False)
-#
-# print("Results sorted by default scoring (accuracy) and saved to 'cv_results.csv'.")
-
-
-
+    print("Results sorted by default scoring (accuracy) and saved to 'cv_results.csv'.")
 
 
 print("Model fitted, predicting...")
