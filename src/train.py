@@ -65,6 +65,7 @@ if False: # Set true to run the grid search
             colsample_bytree=0.8,
             objective= 'multi:softprob',
             eval_metric= 'ndcg',
+            random_state=42,
         ),
         search_space,
         verbose=100,
