@@ -67,13 +67,17 @@ def get_summerized_session_data(use_cache=True):
         'device_type': 'unique_device_types'
     })
 
+
+    # For each action type, count the number of times it was performed by each user
+    action_type_counts = sessions_df.groupby('user_id')['action'].value_counts().unstack().fillna(0).reset_index()
+
     aggregated_df = pd.merge(aggregated_df, row_count_df, on='user_id', how='left')
     aggregated_df = pd.merge(aggregated_df, action_present_df, on='user_id', how='left')
     aggregated_df = pd.merge(aggregated_df, unique_counts_df, on='user_id', how='left')
+    aggregated_df = pd.merge(aggregated_df, action_type_counts, on='user_id', how='left')
 
     print(aggregated_df.shape)
-    aggregated_df.head()
-
+    print(aggregated_df.head())
 
     # Save the data to a file
     print("Saving to file")

@@ -23,11 +23,22 @@ def set_age_group(x):
     else:
         return 'Unknown'
 
+def classify_device(x):
+    if x.find('Desktop') != -1:
+        return 'Desktop'
+    elif x.find('Tablet') != -1 or x.find('iPad') != -1:
+        return 'Tablet'
+    elif x.find('Phone') != -1:
+        return 'Phone'
+    else:
+        return 'Unknown'
+
 def process_data(df: pd.DataFrame):
     # Combine the session data
     X = df.merge(sum_session, left_on="id", right_on="user_id", how="left")
 
     X = X.drop(columns=["id", "country_destination", "user_id"], axis=1)
+
     
     # Handling date_account_created
     pdt = pd.to_datetime(X["date_account_created"])
@@ -41,6 +52,8 @@ def process_data(df: pd.DataFrame):
 
     X['age'] = X['age'].apply(lambda x: np.nan if x > 120 else x)
     X['age_bucket'] = X['age'].apply(set_age_group).astype('category').cat.codes
+
+    X['first_device_type'] = X['first_device_type'].apply(classify_device)
 
     # Encoding categorical variables
     categorical_columns = ["language", "gender", "signup_method", "affiliate_channel", 

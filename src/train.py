@@ -17,7 +17,7 @@ import numpy as np
 
 
 # Split the data into training and testing
-X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.1, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.05, random_state=42)
 
 # print("Smoting...") 
 # smote = SMOTE()
@@ -48,9 +48,9 @@ predictions = model.predict(X_test)
 print("Predictions made, calculating metrics...")
 report = classification_report(y_test, predictions)
 print(report)
-cm = confusion_matrix(y_test, predictions)
-cm_df = pd.DataFrame(cm, model.classes_, model.classes_)
-print(cm_df)
+# cm = confusion_matrix(y_test, predictions)
+# cm_df = pd.DataFrame(cm, model.classes_, model.classes_)
+# print(cm_df)
 
 print("Predicting probs")
 # (num_samples, num_classes)
