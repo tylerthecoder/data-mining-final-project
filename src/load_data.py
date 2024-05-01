@@ -113,16 +113,24 @@ def process_data(df: pd.DataFrame):
 # Do a basic prediction
 print("Processing data...")
 
+y = users_df["country_destination"]
+
+print("Distribution of classes in y:")
+print(y.value_counts())
+
 y = users_df["country_destination"].astype('category').cat.codes
 x = process_data(users_df)
-
-# Print the columns and their datatypes
-print("Columns and their datatypes:")
-print(x.dtypes.to_string())
 
 # Print the distribution of classes in y
 distribution = y.value_counts()
 print("Distribution of classes in y:")
 print(distribution)
+
+# Print the columns and their datatypes
+print("Columns and their datatypes:")
+print(x.dtypes.to_string())
+
+
+print("Y labels:")
 
 
