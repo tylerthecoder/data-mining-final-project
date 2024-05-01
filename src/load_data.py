@@ -68,7 +68,11 @@ def process_data(df: pd.DataFrame):
     # Combine the session data
     X = df.merge(sum_session, left_on="id", right_on="user_id", how="left")
 
-    X = X.drop(columns=["id", "country_destination", "user_id", "date_first_booking"], axis=1)
+    # If country_destination is present, drop it
+    if "country_destination" in X.columns:
+        X = X.drop(columns=["country_destination"], axis=1)
+
+    X = X.drop(columns=["id", "user_id", "date_first_booking"], axis=1)
 
     # Handling date_account_created
     pdt = pd.to_datetime(X["date_account_created"])

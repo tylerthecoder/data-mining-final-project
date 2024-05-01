@@ -41,36 +41,43 @@ X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.05, random
 # model = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1, max_iter=100000)
 
 
+# model = XGBClassifier(
+#     tree_method="hist",
+#     early_stopping_rounds=5,
+#     n_estimators=200,
+#     n_jobs=-1,
+# )
+
 model = XGBClassifier(
     tree_method="hist",
-    early_stopping_rounds=5,
-    n_estimators=200,
-    n_jobs=-1,
+    colsample_bytree=0.8,
+    objective= 'multi:softprob',
+    eval_metric= 'ndcg',
+    random_state=42,
 )
 
-print(X_train)
-print("Model created, fitting...")
+print(X_train.head())
 
-if False: # Set true to run the grid search
+
+# check arguments for if we should run grid
+import sys
+should_grid = len(sys.argv) > 1 and sys.argv[1] == "grid"
+
+if should_grid: # Set true to run the grid search
+    print("Grid searching...")
+
     search_space = {
-        'n_estimators': [100,200],
-        'max_depth': [3,5],
-        "gamma" : [0.01, 0.1],
-        "learning_rate" : [0.001, 0.01, 0.1, 1]
+        'n_estimators': [100],
+        'max_depth': [3],
+        "gamma" : [0.01],
+        "learning_rate" : [1]
     }
 
     model = GridSearchCV(
-    XGBClassifier(
-            tree_method="hist",
-            colsample_bytree=0.8,
-            objective= 'multi:softprob',
-            eval_metric= 'ndcg',
-            random_state=42,
-        ),
+        model,
         search_space,
         verbose=100,
         scoring=ndcg_scorer,
-        n_jobs=-1,
     )
 
     model.fit(x, y)
@@ -100,22 +107,21 @@ if False: # Set true to run the grid search
     df.to_csv("cv_results.csv", index=False)
 
     print("Results sorted by default scoring (accuracy) and saved to 'cv_results.csv'.")
-
-
-
     print(x)
+
 else:
-    # model.fit(X_train, y_train)
-    model.fit(X_train, y_train, eval_set=[(X_test, y_test)], verbose=True)
+    print("Fitting model...")
+    model.fit(X_train, y_train)
+    # model.fit(X_train, y_train, eval_set=[(X_test, y_test)], verbose=True)
 
 print("Model fitted, predicting...")
 predictions = model.predict(X_test)
 print("Predictions made, calculating metrics...")
 report = classification_report(y_test, predictions)
 print(report)
-# cm = confusion_matrix(y_test, predictions)
-# cm_df = pd.DataFrame(cm, model.classes_, model.classes_)
-# print(cm_df)
+cm = confusion_matrix(y_test, predictions)
+cm_df = pd.DataFrame(cm, model.classes_, model.classes_)
+print(cm_df)
 
 print("Predicting probs")
 # (num_samples, num_classes)
@@ -140,16 +146,37 @@ print("SCORE: ", val)
 
 
 
-
 print("Predict on test data")
+df_test = pd.read_csv('data/csv/test_users.csv')
+df_test = process_data(df_test)
+test_preds = model.predict(df_test)
 
-# df_test = pd.read_csv('data/test_users.csv')
-# df_test = process_data(df_test)
-#
-# pred_prob = pd.DataFrame(pred_prob, index=df_test.index)
+class_dict = {
+    'NDF': 0,
+    'US': 1,
+    'other': 2,
+    'FR': 3,
+    'CA': 4,
+    'GB': 5,
+    'ES': 6,
+    'IT': 7,
+    'PT': 8,
+    'NL': 9,
+    'DE': 10,
+    'AU': 11
+}
+inv_classes = {v: k for k, v in class_dict.items()}
+
+def get_top(s):
+    indexes = [i for i in range(0,12)]
+    lst = list(zip(indexes, s))
+    top_five = sorted(lst, key=lambda x: x[1], reverse=True)[:5]
+    top_five = [inv_classes[i[0]] for i in top_five]
+    return str(top_five)
 
 
+test_preds['get_top'] = test_preds.apply(get_top, axis=1)
 
-
-
-
+import ast
+test_preds['get_top'] = test_preds['get_top'].apply(lambda x: ast.literal_eval(x))
+print(test_preds.head())
