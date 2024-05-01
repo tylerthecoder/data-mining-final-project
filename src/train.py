@@ -59,10 +59,12 @@ if False: # Set true to run the grid search
         "learning_rate" : [0.001, 0.01, 0.1, 1]
     }
 
-
     model = GridSearchCV(
     XGBClassifier(
             tree_method="hist",
+            colsample_bytree=0.8,
+            objective= 'multi:softprob',
+            eval_metric= 'ndcg',
         ),
         search_space,
         verbose=100,
